@@ -1,0 +1,101 @@
+
+CREATE TABLE USUARIO(
+	id_usuario SERIAL PRIMARY KEY, 
+	nombre VARCHAR(100) NOT NULL, 
+	email VARCHAR UNIQUE NOT NULL, 
+	contrasena VARCHAR(60) NOT NULL, 
+	estado BOOl DEFAULT TRUE, 
+	fecha DATE DEFAULT CURRENT_DATE
+);
+
+ALTER TABLE USUARIO ADD COLUMN rol VARCHAR(10);
+
+CREATE TABLE CATEGORIAS(
+	id_categoria INT UNIQUE NOT NULL, 
+	nombre VARCHAR(60) NOT NULL
+);
+
+CREATE TABLE PRODUCTO(
+	id_producto SERIAL PRIMARY KEY,
+	id_categoria INT NOT NULL, 
+	nombre VARCHAR(60) NOT NULL, 
+	stock INT NOT NULL,
+	precio NUMERIC(10,2) CHECK (precio > 0), 
+	fecha DATE DEFAULT CURRENT_DATE ,
+	FOREIGN KEY(id_categoria) REFERENCES CATEGORIAS(id_categoria)
+	ON DELETE CASCADE
+	);
+
+CREATE TABLE GASTO(
+	id_gasto SERIAL PRIMARY KEY, 
+	id_usuario INT NOT NULL,
+	monto NUMERIC (10,2), 
+	descripcion VARCHAR(200),
+	fecha DATE DEFAULT CURRENT_DATE, 
+	FOREIGN KEY(id_usuario) REFERENCES USUARIO(id_usuario)
+	ON DELETE CASCADE
+	
+);
+
+CREATE TABLE VENTA(
+	id_venta SERIAL PRIMARY KEY, 
+	id_usuario INT NOT NULL, 
+	metodo_pago VARCHAR(30),
+	total NUMERIC(10,2),
+	monto_recibido NUMERIC(10,2) NOT NULL, 
+	cambio NUMERIC(10,2) NOT NULL, 
+	fecha DATE DEFAULT CURRENT_DATE, 
+	FOREIGN KEY (id_usuario) REFERENCES USUARIO(id_usuario) 
+	ON DELETE CASCADE
+	);
+
+	ALTER TABLE VENTA 
+	ADD CONSTRAINT chk_monto_recibido CHECK  (monto_recibido >0),
+	ADD CONSTRAINT chk_total CHECK (total>0), 
+	ADD CONSTRAINT chk_cambio CHECK (cambio = (monto_recibido-total));
+	
+CREATE TABLE FACTURA(
+	id_factura SERIAL PRIMARY KEY, 
+	id_venta INT, 
+	fecha DATE DEFAULT CURRENT_DATE
+
+); 
+--Tenemos que cambiar esta mkda en el diagrama para que sea debil la entidad no tiene PK
+CREATE TABLE DETALLE_VENTA(
+	id_producto INT NOT NULL,
+	id_venta INT NOT NULL, 
+	PRIMARY KEY (id_producto, id_venta),
+	cantidad INT CHECK (cantidad>0) NOT NULL, 
+	precio_unitario NUMERIC(10,2) NOT NULL,
+	subtotal NUMERIC(10,2) GENERATED ALWAYS AS (cantidad*precio_unitario) STORED, 
+	FOREIGN KEY (id_producto) REFERENCES PRODUCTO(id_producto)
+	ON DELETE CASCADE ,
+	FOREIGN KEY (id_venta) REFERENCES VENTA(id_venta) 
+	ON DELETE CASCADE
+	
+); 
+
+CREATE TABLE MOVIMIENTO_INVENTARIO(
+	id_movimiento SERIAL PRIMARY KEY, 
+	id_producto INT NOT NULL, 
+	id_usuario INT NOT NULL, 
+	tipo VARCHAR(30) NOT NULL, 
+	cantidad INT NOT NULL CHECK (cantidad >0), 
+	motivo VARCHAR(100), 
+	fecha DATE DEFAULT CURRENT_DATE, 
+	FOREIGN kEY (id_producto) REFERENCES PRODUCTO(id_producto)
+	ON DELETE CASCADE, 
+	FOREIGN KEY (id_usuario) REFERENCES USUARIO(id_usuario)
+	ON DELETE CASCADE
+); 
+
+
+INSERT INTO USUARIO(nombre,email,contrasena, estado,rol) VALUES 
+('juan est', 'juanest1223@gmail.com', 'juan1234',True,'Admin');
+
+INSERT INTO USUARIO(nombre,email,contrasena, estado,rol) VALUES 
+('lucas', 'lucas1223@gmail.com', 'lucas1234',True,'Cajero');
+
+
+SELECT * FROM USUARIO U 
+WHERE (U.nombre = 'pedro') AND (U.contrasena ='pedro1234');
