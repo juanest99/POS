@@ -5,6 +5,7 @@ from services.inventario_service import InventarioService
 from models.categoria_repository import CategoriaRepository
 from models.usuario_repository import UsuarioRepository
 from models.movimiento_repository import MovimientoRepository
+from services.venta_service import VentaService
 
 class RealService(ServiceInterface):
     def acceder(self, persona: Usuario, *args, **kwargs):
@@ -63,29 +64,147 @@ class RealService(ServiceInterface):
     # ==================== MENÚ CAJERO ====================
     
     def _menu_cajero(self, usuario):
+        venta_service = VentaService()
         while True:
             print(f"\n{'='*50}")
             print(f"   PANEL CAJERO - {usuario.nombre}")
             print(f"{'='*50}")
             print("1. Nueva venta")
             print("2. Buscar producto")
-            print("3. Historial de ventas")
-            print("4. Salir")
+            print("3. Ver historial de ventas")
+            print("4. Ver estadísticas del día")
+            print("5. Salir")
             print(f"{'='*50}")
             
             opcion = input("Seleccione una opción: ")
             
             if opcion == "1":
-                print("🛒 Módulo de ventas (próximamente)")
+                self._nueva_venta(usuario, venta_service)
             elif opcion == "2":
                 self._buscar_producto()
             elif opcion == "3":
-                print("📜 Historial de ventas (próximamente)")
+                self._historial_ventas(usuario)
             elif opcion == "4":
+                self._estadisticas_ventas()
+            elif opcion == "5":
                 print("👋 Sesión cerrada")
                 break
             else:
                 print("❌ Opción inválida")
+
+    def _nueva_venta(self, usuario, venta_service):
+        print("\n🛒 NUEVA VENTA")
+        print("="*40)
+        
+        while True:
+            # Mostrar carrito actual
+            venta_service.ver_carrito()
+            
+            print("\n📋 OPCIONES:")
+            print("   1. Agregar producto")
+            print("   2. Modificar cantidad")
+            print("   3. Quitar producto")
+            print("   4. Vaciar carrito")
+            print("   5. Procesar pago")
+            print("   6. Cancelar venta")
+            
+            opcion = input("\nSeleccione: ")
+            
+            if opcion == "1":
+                try:
+                    id_producto = int(input("ID del producto: "))
+                    cantidad = int(input("Cantidad: "))
+                    venta_service.agregar_al_carrito(id_producto, cantidad)
+                except ValueError:
+                    print("❌ Ingrese números válidos")
+            
+            elif opcion == "2":
+                try:
+                    id_producto = int(input("ID del producto: "))
+                    nueva_cantidad = int(input("Nueva cantidad: "))
+                    venta_service.modificar_cantidad(id_producto, nueva_cantidad)
+                except ValueError:
+                    print("❌ Ingrese números válidos")
+            
+            elif opcion == "3":
+                try:
+                    id_producto = int(input("ID del producto a quitar: "))
+                    venta_service.quitar_del_carrito(id_producto)
+                except ValueError:
+                    print("❌ Ingrese número válido")
+            
+            elif opcion == "4":
+                venta_service.vaciar_carrito()
+            
+            elif opcion == "5":
+                if not venta_service.carrito:
+                    print("❌ El carrito está vacío")
+                    continue
+                
+                _, total = venta_service.ver_carrito()
+                print(f"\n💰 TOTAL A PAGAR: ${total:.2f}")
+                
+                print("\n💳 Métodos de pago:")
+                print("   1. Efectivo")
+                print("   2. Tarjeta débito/crédito")
+                print("   3. Transferencia")
+                
+                metodo_opcion = input("Seleccione método de pago: ")
+                metodos = {"1": "efectivo", "2": "tarjeta", "3": "transferencia"}
+                metodo_pago = metodos.get(metodo_opcion, "efectivo")
+                
+                try:
+                    monto_recibido = float(input("Monto recibido: "))
+                    id_venta = venta_service.procesar_pago(usuario.id_usuario, metodo_pago, monto_recibido)
+                    
+                    if id_venta:
+                        print("\n¿Desea ver la factura? (s/n): ", end="")
+                        if input().lower() == 's':
+                            VentaService.mostrar_factura(id_venta)
+                        break
+                except ValueError:
+                    print("❌ Ingrese un monto válido")
+            
+            elif opcion == "6":
+                venta_service.vaciar_carrito()
+                print("❌ Venta cancelada")
+                break
+            
+            else:
+                print("❌ Opción inválida")
+
+    def _historial_ventas(self, usuario):
+        from models.venta_repository import VentaRepository
+        
+        print("\n📜 HISTORIAL DE VENTAS")
+        print("="*40)
+        
+        ventas = VentaRepository.listar_por_usuario(usuario.id_usuario)
+        
+        if not ventas:
+            print("No hay ventas registradas")
+        else:
+            print(f"\n{'ID':<6} {'FECHA':<12} {'TOTAL':<12} {'MÉTODO':<12}")
+            print("-"*50)
+            for v in ventas:
+                fecha_str = v.fecha.strftime("%Y-%m-%d") if v.fecha else "N/A"
+                print(f"{v.id_venta:<6} {fecha_str:<12} ${v.total:<12.2f} {v.metodo_pago:<12}")
+        
+        input("\nPresione Enter para continuar...")
+
+    def _estadisticas_ventas(self):
+        from services.venta_service import VentaService
+        
+        stats = VentaService.obtener_estadisticas_rapidas()
+        
+        print("\n📊 ESTADÍSTICAS DEL DÍA")
+        print("="*40)
+        print(f"💰 Ventas del día: {stats['ventas_hoy']}")
+        print(f"💵 Total recaudado: ${stats['total_hoy']:.2f}")
+        print(f"📈 Promedio por venta: ${stats['promedio_hoy']:.2f}")
+        print("="*40)
+        
+        input("\nPresione Enter para continuar...")
     
     # ==================== GESTIÓN DE PRODUCTOS ====================
     
