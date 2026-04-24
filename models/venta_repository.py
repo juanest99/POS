@@ -1,7 +1,7 @@
 from database.connection import conexion
 from models.venta import Venta
 from models.detalle_venta import DetalleVenta
-from typing import List, Optional, Tuple
+from typing import List, Optional
 
 class VentaRepository:
     """Repositorio para operaciones de ventas"""
@@ -29,32 +29,29 @@ class VentaRepository:
             # 1. Insertar la venta
             query_venta = """
                 INSERT INTO VENTA (id_usuario, metodo_pago, total, monto_recibido, cambio)
-                VALUES (?, ?, ?, ?, ?)
+                VALUES (%s, %s, %s, %s, %s)
+                RETURNING id_venta
             """
             params_venta = (venta.id_usuario, venta.metodo_pago, 
                            venta.total, venta.monto_recibido, venta.cambio)
-            conexion(query_venta, params_venta)
-            
-            # Obtener el ID de la última venta insertada
-            query_last_id = "SELECT last_insert_rowid()"
-            resultado = conexion(query_last_id, None)
+            resultado = conexion(query_venta, params_venta)
             
             if not resultado:
-                print("❌ Error al obtener ID de la venta")
+                print("❌ Error al guardar la venta")
                 return None
             
             id_venta = resultado[0][0]
             
-            # 2. Insertar los detalles de la venta
+            # 2. Insertar los detalles de la venta (sin subtotal porque es GENERATED)
             query_detalle = """
-                INSERT INTO DETALLE_VENTA (id_producto, id_venta, cantidad, precio_unitario, subtotal)
-                VALUES (?, ?, ?, ?, ?)
+                INSERT INTO DETALLE_VENTA (id_producto, id_venta, cantidad, precio_unitario)
+                VALUES (%s, %s, %s, %s)
             """
             
             for detalle in detalles:
                 detalle.id_venta = id_venta
                 params_detalle = (detalle.id_producto, detalle.id_venta,
-                                  detalle.cantidad, detalle.precio_unitario, detalle.subtotal)
+                                  detalle.cantidad, detalle.precio_unitario)
                 conexion(query_detalle, params_detalle)
             
             print(f"✅ Venta #{id_venta} registrada exitosamente")
@@ -68,7 +65,7 @@ class VentaRepository:
     def buscar_por_id(id_venta: int) -> Optional[Venta]:
         """Busca una venta por su ID"""
         try:
-            query = "SELECT * FROM VENTA WHERE id_venta = ?"
+            query = "SELECT * FROM VENTA WHERE id_venta = %s"
             resultado = conexion(query, (id_venta,))
             if resultado:
                 return VentaRepository._tupla_a_venta(resultado[0])
@@ -83,9 +80,9 @@ class VentaRepository:
         try:
             query = """
                 SELECT * FROM VENTA 
-                WHERE id_usuario = ? 
+                WHERE id_usuario = %s 
                 ORDER BY fecha DESC 
-                LIMIT ?
+                LIMIT %s
             """
             resultados = conexion(query, (id_usuario, limite))
             if resultados:
@@ -104,7 +101,7 @@ class VentaRepository:
                 FROM VENTA v
                 JOIN USUARIO u ON v.id_usuario = u.id_usuario
                 ORDER BY v.fecha DESC
-                LIMIT ?
+                LIMIT %s
             """
             resultados = conexion(query, (limite,))
             if resultados:
@@ -119,10 +116,10 @@ class VentaRepository:
         """Obtiene los detalles de una venta"""
         try:
             query = """
-                SELECT dv.*, p.nombre as producto_nombre
+                SELECT dv.id_producto, dv.id_venta, dv.cantidad, dv.precio_unitario, dv.subtotal, p.nombre as producto_nombre
                 FROM DETALLE_VENTA dv
                 JOIN PRODUCTO p ON dv.id_producto = p.id_producto
-                WHERE dv.id_venta = ?
+                WHERE dv.id_venta = %s
             """
             resultados = conexion(query, (id_venta,))
             
@@ -134,7 +131,7 @@ class VentaRepository:
                         _id_venta=r[1],
                         _cantidad=r[2],
                         _precio_unitario=float(r[3]),
-                        _subtotal=float(r[4])
+                        _subtotal=float(r[4]) if r[4] else 0.0
                     )
                     detalles.append(detalle)
             return detalles
@@ -148,7 +145,7 @@ class VentaRepository:
         try:
             query = """
                 SELECT * FROM VENTA 
-                WHERE DATE(fecha) = DATE('now')
+                WHERE DATE(fecha) = CURRENT_DATE
                 ORDER BY fecha DESC
             """
             resultados = conexion(query, None)
@@ -163,7 +160,7 @@ class VentaRepository:
     def obtener_total_ventas_hoy() -> float:
         """Obtiene el total de ventas del día"""
         try:
-            query = "SELECT COALESCE(SUM(total), 0) FROM VENTA WHERE DATE(fecha) = DATE('now')"
+            query = "SELECT COALESCE(SUM(total), 0) FROM VENTA WHERE DATE(fecha) = CURRENT_DATE"
             resultado = conexion(query, None)
             if resultado and resultado[0][0]:
                 return float(resultado[0][0])
