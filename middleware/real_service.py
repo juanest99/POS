@@ -6,6 +6,10 @@ from models.categoria_repository import CategoriaRepository
 from models.usuario_repository import UsuarioRepository
 from models.movimiento_repository import MovimientoRepository
 from services.venta_service import VentaService
+from services.gasto_service import GastoService
+from services.reporte_service import ReporteService
+from datetime import date
+
 
 class RealService(ServiceInterface):
     def acceder(self, persona: Usuario, *args, **kwargs):
@@ -40,9 +44,10 @@ class RealService(ServiceInterface):
             print(f"{'='*50}")
             print("1. Gestionar Productos")
             print("2. Gestionar Inventario")
-            print("3. Ver Reportes")
-            print("4. Gestionar Usuarios")
-            print("5. Salir")
+            print("3. Gestionar Gastos")
+            print("4. Ver Reportes")
+            print("5. Gestionar Usuarios")
+            print("6. Salir")
             print(f"{'='*50}")
             
             opcion = input("Seleccione una opción: ")
@@ -52,10 +57,12 @@ class RealService(ServiceInterface):
             elif opcion == "2":
                 self._menu_gestion_inventario(usuario)
             elif opcion == "3":
-                self._menu_reportes()
+                self._menu_gestion_gastos(usuario)
             elif opcion == "4":
-                self._menu_gestion_usuarios()
+                self._menu_reportes(usuario)
             elif opcion == "5":
+                self._menu_gestion_usuarios()
+            elif opcion == "6":
                 print("👋 Sesión cerrada")
                 break
             else:
@@ -615,12 +622,120 @@ class RealService(ServiceInterface):
     
     # ==================== REPORTES ====================
     
-    def _menu_reportes(self):
-        print("\n📊 MÓDULO DE REPORTES (Próximamente)")
-        input("Presione Enter para continuar...")
+    def _menu_reportes(self, usuario):
+        while True:
+            print(f"\n{'='*50}")
+            print("   REPORTES FINANCIEROS")
+            print(f"{'='*50}")
+            print("1. Reporte diario de hoy")
+            print("2. Reporte mensual")
+            print("3. Volver")
+            print(f"{'='*50}")
+            
+            opcion = input("Seleccione una opción: ")
+            
+            if opcion == "1":
+                ReporteService.mostrar_reporte_diario()
+                input("\nPresione Enter para continuar...")
+            elif opcion == "2":
+                hoy = date.today()
+                ReporteService.mostrar_reporte_mensual(hoy.year, hoy.month)
+                input("\nPresione Enter para continuar...")
+            elif opcion == "3":
+                break
+            else:
+                print("❌ Opción inválida")
     
     # ==================== GESTIÓN DE USUARIOS ====================
     
     def _menu_gestion_usuarios(self):
         print("\n👥 GESTIÓN DE USUARIOS (Próximamente)")
         input("Presione Enter para continuar...")
+
+
+# ==================== GESTIÓN DE GASTOS ====================
+
+    # ==================== GESTIÓN DE GASTOS ====================
+    
+    def _menu_gestion_gastos(self, usuario):
+        while True:
+            print(f"\n{'='*50}")
+            print("   GESTIÓN DE GASTOS")
+            print(f"{'='*50}")
+            print("1. Registrar nuevo gasto")
+            print("2. Ver gastos del día")
+            print("3. Ver gastos del mes actual")
+            print("4. Ver resumen de gastos del mes")
+            print("5. Volver al menú principal")
+            print(f"{'='*50}")
+            
+            opcion = input("Seleccione una opción: ")
+            
+            if opcion == "1":
+                self._registrar_nuevo_gasto(usuario)
+            elif opcion == "2":
+                gastos = GastoService.obtener_gastos_dia()
+                GastoService.mostrar_lista_gastos(gastos, "GASTOS DEL DÍA")
+                input("\nPresione Enter para continuar...")
+            elif opcion == "3":
+                hoy = date.today()
+                gastos = GastoService.obtener_gastos_mes(hoy.year, hoy.month)
+                GastoService.mostrar_lista_gastos(gastos, f"GASTOS DE {hoy.strftime('%B %Y')}")
+                input("\nPresione Enter para continuar...")
+            elif opcion == "4":
+                hoy = date.today()
+                GastoService.mostrar_resumen_gastos(
+                    date(hoy.year, hoy.month, 1),
+                    hoy
+                )
+                input("\nPresione Enter para continuar...")
+            elif opcion == "5":
+                break
+            else:
+                print("❌ Opción inválida")
+
+    def _registrar_nuevo_gasto(self, usuario):
+        print("\n" + "="*50)
+        print("   REGISTRAR NUEVO GASTO")
+        print("="*50)
+        
+        try:
+            descripcion = input("📝 Descripción del gasto: ")
+            
+            if not descripcion.strip():
+                print("❌ La descripción no puede estar vacía")
+                input("Presione Enter...")
+                return
+            
+            monto = float(input("💰 Monto: $"))
+            
+            if monto <= 0:
+                print("❌ El monto debe ser mayor a 0")
+                input("Presione Enter...")
+                return
+            
+            print("\n⏳ Guardando gasto...")
+            
+            resultado = GastoService.registrar_gasto(
+                id_usuario=usuario.id_usuario if usuario.id_usuario else 1,
+                descripcion=descripcion,
+                monto=monto
+            )
+            
+            if resultado:
+                print("\n" + "="*50)
+                print("✅ ¡GASTO REGISTRADO EXITOSAMENTE!")
+                print("="*50)
+                print(f"   📄 ID del gasto:     {resultado.id_gasto}")
+                print(f"   📝 Descripción:     {resultado.descripcion}")
+                print(f"   💰 Monto:           ${resultado.monto:.2f}")
+                print("="*50)
+            else:
+                print("\n❌ Error al registrar el gasto")
+            
+        except ValueError:
+            print("❌ Error: El monto debe ser un número válido")
+        except Exception as e:
+            print(f"❌ Error inesperado: {e}")
+        
+        input("\nPresione Enter para continuar...")
