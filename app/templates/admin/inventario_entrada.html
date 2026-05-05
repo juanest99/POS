@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Registrar Entrada{% endblock %}
+{% block content %}
+<h2>Registrar Entrada de Productos</h2>
+<form method="POST">
+    <div class="mb-3">
+        <label>Producto</label>
+        <select name="id_producto" class="form-select" required>
+            <option value="">Seleccione...</option>
+            {% for p in productos %}
+            <option value="{{ p.id_producto }}">{{ p.nombre }} (Stock: {{ p.stock }})</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="mb-3">
+        <label>Cantidad</label>
+        <input type="number" name="cantidad" class="form-control" required>
+    </div>
+    <div class="mb-3">
+        <label>Motivo</label>
+        <select name="motivo" class="form-select">
+            <option value="compra">Compra a proveedor</option>
+            <option value="devolucion_cliente">Devolución de cliente</option>
+            <option value="ajuste_inventario">Ajuste de inventario</option>
+        </select>
+    </div>
+    <button type="submit" class="btn btn-primary">Registrar</button>
+    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary">Cancelar</a>
+</form>
+{% endblock %}

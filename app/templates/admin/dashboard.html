@@ -1,0 +1,177 @@
+<!-- app/templates/admin/dashboard.html -->
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4">Panel de Control</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item active">{{ now|default('Hoy') }}</li>
+    </ol>
+
+    <!-- Tarjetas principales -->
+    <div class="row">
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-primary text-white mb-4">
+                <div class="card-body">
+                    <h5>Ventas Totales Hoy</h5>
+                    <h2>${{ "%.2f"|format(today_sales.total_sales) }}</h2>
+                    <p>{{ today_sales.transactions }} transacciones</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-success text-white mb-4">
+                <div class="card-body">
+                    <h5>Productos Vendidos</h5>
+                    <h2>{{ products_sold_today }} unidades</h2>
+                    <p>Hoy</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-info text-white mb-4">
+                <div class="card-body">
+                    <h5>Valor Promedio Venta</h5>
+                    <h2>${{ "%.2f"|format(avg_sale) }}</h2>
+                    <p>Por transacción</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-warning text-white mb-4">
+                <div class="card-body">
+                    <h5>Hora Pico</h5>
+                    <h2>{{ peak_hour }}</h2>
+                    <p>Mayor volumen de ventas</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráfico de ventas por hora -->
+    <div class="row">
+        <div class="col-xl-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-chart-line"></i> Ventas por Hora (Hoy)
+                </div>
+                <div class="card-body">
+                    <canvas id="salesChart" width="100%" height="40"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-chart-pie"></i> Métodos de Pago
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Método</th>
+                                <th>Monto</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for method, amount in payment_methods.items() %}
+                            <tr>
+                                <td>{{ method|capitalize }}</td>
+                                <td>${{ "%.2f"|format(amount) }}</td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="2">No hay datos hoy</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    <p><strong>Preferencia:</strong> {{ preferred_payment|capitalize }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top producto y producto sin ventas -->
+    <div class="row">
+        <div class="col-xl-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-trophy"></i> Producto Más Vendido (Semana)
+                </div>
+                <div class="card-body">
+                    <h5>{{ top_product.product }}</h5>
+                    <p>Vendidos: {{ top_product.sold }} unidades</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-box-open"></i> Producto Sin Movimiento (Semana)
+                </div>
+                <div class="card-body">
+                    <h5>{{ unsold_product.product }}</h5>
+                    <p>Stock disponible pero sin ventas recientes</p>
+                </div>
+            </div>
+        </div>
+    </div>
+<!-- Seccion de salida de inventario -->
+<div class="col-md-4">
+    <div class="card mb-4">
+        <div class="card-header">Inventario</div>
+        <div class="card-body">
+            <a href="{{ url_for('admin.inventario_salida') }}" class="btn btn-warning">Registrar Salida</a>
+        </div>
+    </div>
+</div>
+
+    <!-- Horario activo (simulado) -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-clock"></i> Horario de Atención
+                </div>
+                <div class="card-body">
+                    <p>Activo desde las {{ business_start }} - {{ business_end }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Convertir el diccionario de Python a objeto JavaScript con JSON.parse
+    const salesByHour = JSON.parse('{{ sales_by_hour|tojson|safe }}');
+    const hours = Object.keys(salesByHour).map(h => `${h}:00`);
+    const sales = Object.values(salesByHour);
+
+    const ctx = document.getElementById('salesChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: hours,
+            datasets: [{
+                label: 'Ventas ($)',
+                data: sales,
+                borderColor: 'rgb(75, 192, 192)',
+                tension: 0.1,
+                fill: false
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return `$${context.raw.toFixed(2)}`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
