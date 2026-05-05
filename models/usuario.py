@@ -1,11 +1,11 @@
 from dataclasses import dataclass
 from typing import Optional
+from flask_login import UserMixin
 
 @dataclass
-class Usuario:
+class Usuario(UserMixin):
     """Modelo que representa un usuario del sistema"""
     
-    # Atributos privados
     _id_usuario: Optional[int] = None
     _nombre: str = ""
     _email: str = ""
@@ -13,6 +13,14 @@ class Usuario:
     _rol: str = ""
     _fecha: str = ""
     _estado: bool = False
+
+    @property
+    def id(self) -> Optional[int]:
+        return self._id_usuario
+
+    @id.setter
+    def id(self, valor: int):
+        self._id_usuario = valor
 
     @property
     def id_usuario(self) -> Optional[int]:
@@ -69,6 +77,13 @@ class Usuario:
     @estado.setter
     def estado(self, valor: bool):
         self._estado = valor
+
+    def get_id(self):
+        return str(self._id_usuario)
+
+    @property
+    def is_active(self):
+        return self._estado
 
     def __str__(self) -> str:
         return f"{self._id_usuario} | {self._nombre} | {self._rol}"

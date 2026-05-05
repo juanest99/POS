@@ -6,6 +6,7 @@ from models.categoria_repository import CategoriaRepository
 from models.usuario_repository import UsuarioRepository
 from models.movimiento_repository import MovimientoRepository
 from services.venta_service import VentaService
+from services.gasto_service import GastoService
 
 class RealService(ServiceInterface):
     def acceder(self, persona: Usuario, *args, **kwargs):
@@ -40,9 +41,10 @@ class RealService(ServiceInterface):
             print(f"{'='*50}")
             print("1. Gestionar Productos")
             print("2. Gestionar Inventario")
-            print("3. Ver Reportes")
-            print("4. Gestionar Usuarios")
-            print("5. Salir")
+            print("3. Gestionar Gastos")        # ← NUEVO
+            print("4. Ver Reportes")
+            print("5. Gestionar Usuarios")
+            print("6. Salir")
             print(f"{'='*50}")
             
             opcion = input("Seleccione una opción: ")
@@ -52,7 +54,7 @@ class RealService(ServiceInterface):
             elif opcion == "2":
                 self._menu_gestion_inventario(usuario)
             elif opcion == "3":
-                self._menu_reportes()
+                self._menu_gestion_gastos(usuario)
             elif opcion == "4":
                 self._menu_gestion_usuarios()
             elif opcion == "5":
@@ -344,6 +346,76 @@ class RealService(ServiceInterface):
         
         input("\nPresione Enter para continuar...")
     
+
+    def _menu_gestion_gastos(self, usuario):
+        while True:
+            print(f"\n{'='*50}")
+            print("   GESTIÓN DE GASTOS")
+            print(f"{'='*50}")
+            print("1. Registrar nuevo gasto")
+            print("2. Ver últimos gastos")
+            print("3. Resumen de gastos por categoría")
+            print("4. Volver")
+            print(f"{'='*50}")
+            
+            opcion = input("Seleccione: ")
+            
+            if opcion == "1":
+                self._registrar_gasto(usuario)
+            elif opcion == "2":
+                GastoService.mostrar_gastos_recientes()
+                input("Presione Enter para continuar...")
+            elif opcion == "3":
+                self._mostrar_resumen_gastos()
+            elif opcion == "4":
+                break
+            else:
+                print("❌ Opción inválida")
+
+    def _mostrar_resumen_gastos(self):
+        resumen = GastoService.ver_resumen_gastos()
+        print("\n📊 RESUMEN DE GASTOS")
+        print("="*40)
+        print(f"💰 Total gastado: ${resumen['total']:.2f}")
+        print("\n📂 Por categoría:")
+        for cat, total in resumen['por_categoria'].items():
+            print(f"   {cat}: ${total:.2f}")
+        print("="*40)
+        input("\nPresione Enter para continuar...")
+
+    def _registrar_gasto(self, usuario):
+        print("\n💰 REGISTRAR NUEVO GASTO")
+        print("="*40)
+        
+        print("\n📂 Categorías disponibles:")
+        print("   1. Compra de productos")
+        print("   2. Servicios (luz, agua, internet, etc.)")
+        print("   3. Salarios")
+        print("   4. Otros")
+        
+        try:
+            opcion_cat = input("\nSeleccione categoría (1-4): ")
+            categorias = {
+                "1": "compra_productos",
+                "2": "servicios",
+                "3": "salarios",
+                "4": "otros"
+            }
+            categoria = categorias.get(opcion_cat, "otros")
+            
+            monto = float(input("Monto del gasto: "))
+            descripcion = input("Descripción: ")
+            
+            resultado = GastoService.registrar_gasto(usuario.id_usuario, categoria, monto, descripcion)
+            if resultado:
+                print("\n✅ Gasto registrado exitosamente")
+            else:
+                print("\n❌ Error al registrar gasto")
+        except ValueError:
+            print("❌ Monto inválido")
+    
+    input("\nPresione Enter para continuar...")
+
     def _eliminar_producto(self):
         print("\n🗑️ ELIMINAR PRODUCTO")
         print("="*40)
