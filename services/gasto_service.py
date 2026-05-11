@@ -1,101 +1,71 @@
+from typing import List, Optional
 from models.gasto import Gasto
 from models.gasto_repository import GastoRepository
 from models.usuario_repository import UsuarioRepository
-from typing import Optional, List
-from datetime import date, timedelta
 
 class GastoService:
-    """Servicio con la lógica de negocio para gastos"""
+    """Lógica de negocio para gastos"""
     
     @staticmethod
-    def registrar_gasto(id_usuario: int, descripcion: str, monto: float) -> Optional[Gasto]:
-        """Registra un nuevo gasto con validaciones"""
-        
+    def registrar_gasto(id_usuario: int, categoria: str, monto: float, descripcion: str) -> Optional[Gasto]:
+        """
+        Reglas:
+        1. El usuario debe existir
+        2. Monto debe ser > 0
+        3. Categoría válida
+        """
         # Validar usuario
         usuario = UsuarioRepository.buscar_por_id(id_usuario)
         if not usuario:
-            print(f"❌ Error: Usuario con ID {id_usuario} no existe")
+            print(f"❌ Usuario ID {id_usuario} no existe")
             return None
         
         # Validar monto
         if monto <= 0:
-            print("❌ Error: El monto debe ser mayor a 0")
+            print("❌ El monto debe ser mayor a 0")
             return None
         
-        # Validar descripción
-        if not descripcion or descripcion.strip() == "":
-            print("❌ Error: La descripción no puede estar vacía")
+        # Validar categoría
+        categorias_validas = ['compra_productos', 'servicios', 'salarios', 'otros']
+        if categoria not in categorias_validas:
+            print(f"❌ Categoría inválida. Use: {categorias_validas}")
             return None
         
-        # Crear gasto
         gasto = Gasto(
             _id_usuario=id_usuario,
-            _descripcion=descripcion.strip(),
-            _monto=monto
+            _categoria=categoria,
+            _monto=monto,
+            _descripcion=descripcion
         )
-        
-        return GastoRepository.guardar(gasto)
+        return GastoRepository.crear(gasto)
     
     @staticmethod
-    def obtener_gastos_dia(fecha: Optional[date] = None) -> List[Gasto]:
-        """Obtiene los gastos de un día específico"""
-        if fecha is None:
-            fecha = date.today()
-        return GastoRepository.listar_por_fecha(fecha, fecha)
+    def listar_gastos() -> List[Gasto]:
+        return GastoRepository.listar_todos()
     
     @staticmethod
-    def obtener_gastos_mes(anio: int, mes: int) -> List[Gasto]:
-        """Obtiene los gastos de un mes específico"""
-        fecha_inicio = date(anio, mes, 1)
-        if mes == 12:
-            fecha_fin = date(anio + 1, 1, 1) - timedelta(days=1)
-        else:
-            fecha_fin = date(anio, mes + 1, 1) - timedelta(days=1)
-        return GastoRepository.listar_por_fecha(fecha_inicio, fecha_fin)
+    def ver_resumen_gastos() -> dict:
+        """Retorna resumen de gastos por categoría y total"""
+        total = GastoRepository.obtener_total_gastos()
+        por_categoria = GastoRepository.obtener_total_por_categoria()
+        return {
+            'total': total,
+            'por_categoria': por_categoria
+        }
     
     @staticmethod
-    def obtener_total_gastos_periodo(fecha_inicio: date, fecha_fin: date) -> float:
-        """Obtiene el total de gastos en un período"""
-        return GastoRepository.obtener_total_gastos(fecha_inicio, fecha_fin)
-    
-    @staticmethod
-    def mostrar_resumen_gastos(fecha_inicio: date, fecha_fin: date):
-        """Muestra un resumen de gastos"""
-        total_general = GastoRepository.obtener_total_gastos(fecha_inicio, fecha_fin)
-        gastos = GastoRepository.listar_por_fecha(fecha_inicio, fecha_fin)
-        
-        print(f"\n{'='*70}")
-        print(f"📊 RESUMEN DE GASTOS")
-        print(f"📅 Período: {fecha_inicio} al {fecha_fin}")
-        print(f"{'='*70}")
-        
+    def mostrar_gastos_recientes():
+        gastos = GastoRepository.listar_todos(limite=20)
         if not gastos:
-            print("   No hay gastos registrados en este período")
-        else:
-            print(f"\n📋 TOTAL DE GASTOS: ${total_general:>12.2f}")
-            print(f"📋 NÚMERO DE GASTOS: {len(gastos)}")
-        
-        print(f"{'='*70}")
-        return total_general
-    
-    @staticmethod
-    def mostrar_lista_gastos(gastos: List[Gasto], titulo: str = "LISTA DE GASTOS"):
-        """Muestra la lista detallada de gastos"""
-        if not gastos:
-            print("\n📭 No hay gastos para mostrar")
+            print("📋 No hay gastos registrados")
             return
         
-        print(f"\n{'='*90}")
-        print(f"📋 {titulo}")
-        print(f"{'='*90}")
-        print(f"{'ID':<6} {'FECHA':<12} {'MONTO':<12} {'DESCRIPCIÓN'}")
-        print(f"{'-'*90}")
-        
+        print("\n" + "="*70)
+        print("ÚLTIMOS GASTOS REGISTRADOS")
+        print("="*70)
+        print(f"{'ID':<4} {'FECHA':<12} {'CATEGORÍA':<18} {'MONTO':<12} {'DESCRIPCIÓN'}")
+        print("-"*70)
         for g in gastos:
             fecha_str = g.fecha.strftime("%Y-%m-%d") if g.fecha else "N/A"
-            print(f"{g.id_gasto:<6} {fecha_str:<12} ${g.monto:<11.2f} {g.descripcion[:60]}")
-        
-        total = sum(g.monto for g in gastos)
-        print(f"{'-'*90}")
-        print(f"{'TOTAL':<6} {'':<12} ${total:<11.2f}")
-        print(f"{'='*90}")
+            print(f"{g.id_gasto:<4} {fecha_str:<12} {g.categoria:<18} ${g.monto:<12.2f} {g.descripcion[:30]}")
+        print("="*70)

@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Panel Cajero{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-header">Bienvenido, {{ current_user.nombre }}</div>
+    <div class="card-body">
+        <p>Próximamente: interfaz de ventas.</p>
+        <a href="{{ url_for('auth.logout') }}" class="btn btn-danger">Cerrar sesión</a>
+    </div>
+</div>
+{% endblock %}

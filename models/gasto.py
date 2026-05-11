@@ -4,12 +4,13 @@ from datetime import date
 
 @dataclass
 class Gasto:
-    """Modelo que representa un gasto en el sistema"""
+    """Modelo que representa un gasto del negocio"""
     
     _id_gasto: Optional[int] = None
     _id_usuario: int = 0
-    _descripcion: str = ""
+    _categoria: str = ""        # 'compra_productos', 'servicios', 'salarios', 'otros'
     _monto: float = 0.0
+    _descripcion: str = ""
     _fecha: Optional[date] = None
     
     @property
@@ -29,12 +30,12 @@ class Gasto:
         self._id_usuario = valor
     
     @property
-    def descripcion(self) -> str:
-        return self._descripcion
+    def categoria(self) -> str:
+        return self._categoria
     
-    @descripcion.setter
-    def descripcion(self, valor: str):
-        self._descripcion = valor
+    @categoria.setter
+    def categoria(self, valor: str):
+        self._categoria = valor
     
     @property
     def monto(self) -> float:
@@ -45,6 +46,14 @@ class Gasto:
         self._monto = valor
     
     @property
+    def descripcion(self) -> str:
+        return self._descripcion
+    
+    @descripcion.setter
+    def descripcion(self, valor: str):
+        self._descripcion = valor
+    
+    @property
     def fecha(self) -> Optional[date]:
         return self._fecha
     
@@ -53,4 +62,4 @@ class Gasto:
         self._fecha = valor
     
     def __str__(self) -> str:
-        return f"Gasto #{self._id_gasto} | ${self._monto:.2f} | {self._descripcion[:30]}"
+        return f"Gasto #{self._id_gasto} | {self._categoria} | ${self._monto:.2f} | {self._fecha}"
