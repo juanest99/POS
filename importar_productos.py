@@ -2,11 +2,11 @@ import csv
 import psycopg2
 import sys
 import os
-
+import numpy as np
 def conectar_bd():
     return psycopg2.connect(
         host="localhost",
-        database="pos",
+        database="POS",
         user="postgres",
         password="postgres"
     )
@@ -69,10 +69,10 @@ def importar_productos(archivo_csv):
             # Si no hay código de producto, usar el nombre como referencia
             if not codigo:
                 codigo = nombre[:50]  # Máximo 50 caracteres
-            
-            query = """
+            a = np.random.randint(5,30)
+            query = f"""
                 INSERT INTO PRODUCTO (id_categoria, codigo_producto, nombre, codigo_barras, stock, precio)
-                VALUES (%s, %s, %s, %s, 0, %s)
+                VALUES (%s, %s, %s, %s,{a}, %s)
             """
             
             try:

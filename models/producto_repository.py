@@ -52,18 +52,26 @@ class ProductoRepository:
             return None
     
     @staticmethod
-    def buscar_por_nombre(nombre: str) -> Optional[Producto]:
-        """SELECT: Busca un producto por su nombre exacto"""
+    def buscar_por_nombre(nombre: str) -> List[Producto]:
+        """Busca productos por nombre"""
+
         try:
-            query = "SELECT * FROM PRODUCTO WHERE nombre = %s"
-            resultado = conexion(query, (nombre,))
-            
-            if resultado:
-                return ProductoRepository._tupla_a_producto(resultado[0])
-            return None
+            query = "SELECT * FROM PRODUCTO WHERE nombre ILIKE %s"
+
+            resultados = conexion(query, (f"%{nombre}%",))
+
+            productos = []
+
+            for fila in resultados:
+                productos.append(
+                    ProductoRepository._tupla_a_producto(fila)
+                )
+
+            return productos
+
         except Exception as e:
             print(f"❌ Error al buscar producto: {e}")
-            return None
+            return []
     
     @staticmethod
     def listar_todos() -> List[Producto]:

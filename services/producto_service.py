@@ -164,3 +164,7 @@ class ProductoService:
         
         print("="*80)
         print(f"Total: {len(productos)} productos\n")
+        
+    @staticmethod
+    def buscar_por_nombre(nombre: str):
+        return ProductoRepository.buscar_por_nombre(nombre)

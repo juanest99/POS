@@ -193,3 +193,15 @@ def inventario_salida():
         return redirect(url_for('admin.inventario_salida'))
     productos = ProductoService.listar_productos()
     return render_template('admin/inventario_salida.html', productos=productos)
+
+@admin_bp.route('/buscar-producto')
+def buscar_producto():
+
+    nombre_producto = request.args.get('buscar')
+
+    productos = ProductoService.buscar_por_nombre(nombre_producto)
+
+    return render_template(
+        'admin/productos_list.html',
+        productos=productos
+    )
