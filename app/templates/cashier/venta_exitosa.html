@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Venta Completada{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="card mb-4">
+        <div class="card-header bg-success text-white text-center">
+            <i class="fas fa-check-circle fa-3x"></i>
+            <h2 class="mt-2">¡Venta Completada!</h2>
+        </div>
+        <div class="card-body text-center">
+            <h4>Venta #{{ id_venta }}</h4>
+            <p class="lead">La venta ha sido registrada exitosamente.</p>
+            
+            <div class="mt-4">
+                <a href="{{ url_for('cashier.nueva_venta') }}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-plus"></i> Nueva Venta
+                </a>
+                <a href="{{ url_for('cashier.dashboard') }}" class="btn btn-secondary btn-lg">
+                    <i class="fas fa-home"></i> Volver al Inicio
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
