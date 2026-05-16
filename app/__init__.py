@@ -1,8 +1,9 @@
 from flask import Flask, redirect, url_for
 from flask_login import LoginManager
+from datetime import datetime  # ← IMPORTANTE: Agregar esta línea
 
 login_manager = LoginManager()
-login_manager.login_view = 'auth.login'  # type: ignore
+login_manager.login_view = 'auth.login'
 
 def create_app():
     app = Flask(__name__)
@@ -23,6 +24,14 @@ def create_app():
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(admin_bp, url_prefix='/admin')
     app.register_blueprint(cashier_bp, url_prefix='/cashier')
+
+    # ========== AGREGAR ESTO ==========
+    @app.context_processor
+    def utility_processor():
+        """Variables disponibles en TODOS los templates"""
+        from datetime import datetime
+        return {'datetime': datetime}
+    # ==================================
 
     @app.route('/')
     def index():

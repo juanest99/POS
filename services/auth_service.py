@@ -9,17 +9,16 @@ class AuthService(AuthInterface):
         
         if valores:
             fila = valores[0]
-            # Crear objeto Usuario con todos los campos incluyendo id_usuario
+            # La estructura: id_usuario, nombre, email, contrasena, estado, fecha, rol
             usuario = Usuario(
-                _id_usuario=fila[0],  # ← AGREGAR id_usuario
+                _id_usuario=fila[0],
                 _nombre=fila[1],
                 _email=fila[2],
                 _contrasena=fila[3],
-                _estado=fila[4],
-                _fecha=fila[5],
-                _rol=fila[6] if len(fila) > 6 else ""
+                _estado=fila[4] if len(fila) > 4 else True,
+                _fecha=fila[5] if len(fila) > 5 else None,
+                _rol=fila[6].lower() if len(fila) > 6 and fila[6] else "cajero"
             )
             return usuario
         else:
-            print("❌ No se encontró usuario")
             return None
