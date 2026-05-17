@@ -216,12 +216,13 @@ class VentaService:
             id_venta = VentaRepository.guardar(
                 venta=venta,
                 detalles=detalles)
-            if id_venta:            
+            if id_venta: 
+                           
                 for item in carrito:
                     InventarioService.registrar_salida(
-                    id_producto=item.id_producto,
+                    id_producto=item['id_producto'],
                     id_usuario=id_usuario,
-                    cantidad=item.cantidad,
+                    cantidad=item['cantidad'],
                     motivo="venta"
                 )
                 return id_venta

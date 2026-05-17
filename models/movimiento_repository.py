@@ -98,10 +98,8 @@ class MovimientoRepository:
         """
         try:
             query = """
-                SELECT 
-                    SUM(CASE WHEN tipo = 'entrada' THEN cantidad ELSE 0 END) -
-                    SUM(CASE WHEN tipo = 'salida' THEN cantidad ELSE 0 END) as stock_actual
-                FROM MOVIMIENTO_INVENTARIO
+                SELECT stock
+                FROM PRODUCTO
                 WHERE id_producto = %s
             """
             resultado = conexion(query, (id_producto,))
