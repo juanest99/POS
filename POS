@@ -99,3 +99,42 @@ INSERT INTO USUARIO(nombre,email,contrasena, estado,rol) VALUES
 
 SELECT * FROM USUARIO U 
 WHERE (U.nombre = 'pedro') AND (U.contrasena ='pedro1234');
+
+ALTER TABLE PRODUCTO
+ADD COLUMN codigo_producto VARCHAR(50),
+ADD COLUMN codigo_barras VARCHAR(100);
+
+
+SELECT * FROM CATEGORIAS;
+
+INSERT INTO CATEGORIAS(id_categoria,nombre) VALUES
+(0,'VARIOS'),
+(2,'CONGELADOS'),
+(3,'LACTEOS Y REFRIGERADOS'),
+(4,'PANADERIA Y PASTELERIA'),
+(5,'FRUTAS Y VEGETALES'),
+(6,'DULCERIA Y SNACKS'),
+(7,'CUIDADO PERSONAL'),
+(8,'ASEO DEL HOGAR'),
+(9,'BEBIDAS'),
+(10,'ABARROTES');
+
+
+SELECT U.nombre, V.metodo_pago, V.total,P.nombre FROM VENTA V
+INNER JOIN DETALLE_VENTA DE ON DE.id_venta = V.id_venta 
+INNER JOIN PRODUCTO P ON P.id_producto = DE.id_producto
+INNER JOIN USUARIO U ON  U.id_usuario = V.id_usuario
+WHERE V.id_usuario = 2; 
+
+--la mkda de las ventas de hoy 
+
+SELECT COUNT(*) as total_ventas FROM VENTA
+WHERE fecha = CURRENT_DATE AND id_usuario = 2;
+
+
+SELECT SUM(total) AS recaudado FROM VENTA 
+WHERE fecha = CURRENT_DATE AND id_usuario = 2;
+
+
+SELECT ROUND(AVG(total),2) AS promedio FROM VENTA 
+WHERE fecha = CURRENT_DATE AND id_usuario = 2;

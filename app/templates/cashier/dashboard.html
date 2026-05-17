@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block title %}Panel Cajero{% endblock %}
+{% block content %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4">Panel de Cajero</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item active">{{ current_user.nombre }} - {{ current_user.rol|capitalize }}</li>
+    </ol>
+
+    <!-- Tarjeta principal - NUEVA VENTA (lo más importante) -->
+    <div class="row">
+        <div class="col-md-12 mb-4">
+            <div class="card bg-success text-white shadow-lg">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-cash-register fa-4x mb-3"></i>
+                    <h2>Punto de Venta</h2>
+                    <p>Registra ventas de forma rápida y sencilla</p>
+                    <a href="{{ url_for('cashier.nueva_venta') }}" class="btn btn-light btn-lg mt-3">
+                        <i class="fas fa-plus"></i> Nueva Venta
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Accesos rápidos -->
+    <div class="row mt-4">
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-header bg-primary text-white">
+                    <i class="fas fa-box"></i> Productos
+                </div>
+                <div class="card-body">
+                    <p>Consulta el catálogo de productos disponibles</p>
+                    <a href="{{ url_for('admin.productos') }}" class="btn btn-outline-primary">
+                        <i class="fas fa-search"></i> Ver Productos
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-header bg-info text-white">
+                    <i class="fas fa-history"></i> Historial
+                </div>
+                <div class="card-body">
+                    <p>Consulta tus ventas realizadas</p>
+                    <a href="{{ url_for('cashier.tabla_ventas') }}" class="btn btn-outline-info">
+                        <i class="fas fa-list"></i> Ver Historial
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-header bg-warning text-white">
+                    <i class="fas fa-chart-line"></i> Mis Estadísticas
+                </div>
+                <div class="card-body">
+                    <p>Resumen de tus ventas del día</p>
+                    <a href="{{ url_for('cashier.estadisticas') }}" class="btn btn-outline-warning">
+                        <i class="fas fa-chart-simple"></i> Ver Estadísticas
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Información del turno -->
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-clock"></i> Información del Turno
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong><i class="fas fa-user"></i> Cajero:</strong> {{ current_user.nombre }}</p>
+                            <p><strong><i class="fas fa-envelope"></i> Email:</strong> {{ current_user.email }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong><i class="fas fa-clock"></i> Turno actual:</strong> {{ apertura }} - {{ cierre }}</p>
+                            <p><strong><i class="fas fa-calendar"></i> Fecha:</strong> {{ datetime.now().strftime('%d/%m/%Y') }}</p>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="alert alert-info">
+                        <i class="fas fa-lightbulb"></i> <strong>Consejo:</strong> 
+                        Recuerda verificar el inventario antes de comenzar tu turno.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

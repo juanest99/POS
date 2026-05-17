@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+{% block title %}Dashboard - Reportes{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Dashboard de Ventas</h2>
+        <p class="text-muted">{{ datetime.now().strftime('%A, %d de %B de %Y') }}</p>
+    </div>
+
+    <div class="row">
+        <!-- Tarjeta Total Ventas -->
+        <div class="col-md-4 mb-3">
+            <div class="card text-white bg-primary h-100">
+                <div class="card-body">
+                    <h5 class="card-title">💰 Total Ventas Hoy</h5>
+                    <h2 class="display-6">${{ "{:,.2f}".format(total_dinero) }}</h2>
+                    <p class="mb-0">{{ total_transacciones }} transacciones completadas</p>
+                </div>
+            </div>
+        </div>
+        <!-- Tarjeta Unidades Vendidas -->
+        <div class="col-md-4 mb-3">
+            <div class="card text-white bg-success h-100">
+                <div class="card-body">
+                    <h5 class="card-title">📦 Unidades Vendidas</h5>
+                    <h2 class="display-6">{{ unidades_vendidas }}</h2>
+                    <p class="mb-0">Total unidades</p>
+                </div>
+            </div>
+        </div>
+        <!-- Tarjeta Horario Activo -->
+        <div class="col-md-4 mb-3">
+            <div class="card text-white bg-info h-100">
+                <div class="card-body">
+                    <h5 class="card-title">⏰ Activo Desde</h5>
+                    <h2 class="display-6">{{ apertura }}</h2>
+                    <p class="mb-0">Horario: {{ apertura }} - {{ cierre }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Gráfico de Ventas por Hora -->
+        <div class="col-md-8 mb-4">
+            <div class="card">
+                <div class="card-header">Ventas por Hora (Hoy)</div>
+                <div class="card-body">
+                    <canvas id="salesChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+        <!-- Top / Unsold Product -->
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-header">📈 Top Producto (Semana)</div>
+                <div class="card-body">
+                    <h5>{{ top_producto }}</h5>
+                    <p class="text-muted">{{ top_categoria }}</p>
+                    <p>Vendido: {{ top_unidades }} unidades</p>
+                </div>
+            </div>
+            <div class="card mt-3">
+                <div class="card-header">📉 Producto Sin Ventas</div>
+                <div class="card-body">
+                    <h5>{{ low_producto }}</h5>
+                    <p class="text-muted">{{ low_categoria }}</p>
+                    <p>Unidades: {{ low_unidades }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Personal en turno (simulado) -->
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-header">👤 Personal en Turno Hoy</div>
+                <div class="card-body">
+                    <h5>{{ on_duty.nombre }}</h5>
+                    <p>{{ on_duty.rol }}<br>{{ on_duty.horario }}</p>
+                </div>
+            </div>
+        </div>
+        <!-- Métodos de pago -->
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-header">💳 Métodos de Pago (Hoy)</div>
+                <div class="card-body">
+                    {% if pagos_hoy %}
+                        {% for metodo, monto in pagos_hoy.items() %}
+                            <p><strong>{{ metodo|capitalize }}</strong> ${{ "{:,.2f}".format(monto) }}</p>
+                        {% endfor %}
+                    {% else %}
+                        <p>No hay pagos registrados hoy.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <!-- Quick Stats -->
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-header">📊 Estadísticas Rápidas</div>
+                <div class="card-body">
+                    <p><strong>Valor promedio por venta:</strong> ${{ "{:,.2f}".format(promedio_venta) }}</p>
+                    <p><strong>Hora pico:</strong> {{ hora_pico }}</p>
+                    <p><strong>Método de pago preferido:</strong> {{ metodo_preferido }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Convertir el diccionario de Python a objeto JavaScript con JSON.parse
+    const salesByHour = JSON.parse('{{ sales_by_hour|tojson|safe }}');
+    const hours = Object.keys(salesByHour).map(h => `${h}:00`);
+    const sales = Object.values(salesByHour);
+
+    const ctx = document.getElementById('salesChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: hours,
+            datasets: [{
+                label: 'Ventas ($)',
+                data: sales,
+                borderColor: 'rgb(75, 192, 192)',
+                tension: 0.1,
+                fill: false
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return `$${context.raw.toFixed(2)}`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
