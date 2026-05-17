@@ -9,6 +9,7 @@ from services.producto_service import ProductoService
 from services.reporte_service import ReporteService
 from models.venta_repository import VentaRepository
 from models.usuario_repository import UsuarioRepository
+from database.connection import conexion
 cashier_bp = Blueprint('cashier', __name__)
 
 @cashier_bp.route('/')
@@ -223,3 +224,20 @@ def registrar():
         carrito=carrito)
     
     return render_template('cashier/venta_exitosa.html')
+
+@cashier_bp.route('/tabla-ventas',)
+@login_required
+def tabla_ventas(): 
+    
+    usuario = UsuarioRepository.buscar_por_nombre(current_user.nombre)
+    query = """
+            SELECT U.nombre, V.metodo_pago, V.total,P.nombre FROM VENTA V
+            INNER JOIN DETALLE_VENTA DE ON DE.id_venta = V.id_venta 
+            INNER JOIN PRODUCTO P ON P.id_producto = DE.id_producto
+            INNER JOIN USUARIO U ON  U.id_usuario = V.id_usuario
+            WHERE V.id_usuario = %s """
+    params = (usuario[0][0],)
+    resultado = conexion(query=query,params=params)
+    print('aca estan los datos \n', resultado)
+
+    return render_template('cashier/historial.html', ventas = resultado)
