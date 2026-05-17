@@ -116,13 +116,30 @@
         </div>
     </div>
 <!-- Seccion de salida de inventario -->
-<div class="col-md-4">
-    <div class="card mb-4">
-        <div class="card-header">Inventario</div>
-        <div class="card-body">
-            <a href="{{ url_for('admin.inventario_salida') }}" class="btn btn-warning">Registrar Salida</a>
+<div class="row">
+    
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">Productos</div>
+            <div class="card-body">
+                <a href="{{ url_for('admin.productos') }}" class="btn btn-warning">
+                    Visualizar productos
+                </a>
+            </div>
         </div>
     </div>
+
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">Inventario</div>
+            <div class="card-body">
+                <a href="{{ url_for('admin.inventario_salida') }}" class="btn btn-warning">
+                    Registrar Salida
+                </a>
+            </div>
+        </div>
+    </div>
+
 </div>
 
     <!-- Horario activo (simulado) -->

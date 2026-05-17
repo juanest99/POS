@@ -1,4 +1,4 @@
-#!/home/tomate/POS/v1/POS/venv/bin/python3
+#!/home/juanest/Escritorio/Sistema_Pos/venv/bin/python
 # -*- coding: utf-8 -*-
 import re
 import sys

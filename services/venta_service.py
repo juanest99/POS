@@ -5,6 +5,7 @@ from models.movimiento_repository import MovimientoRepository
 from models.venta import Venta
 from models.detalle_venta import DetalleVenta
 from services.inventario_service import InventarioService
+from models.usuario_repository import UsuarioRepository
 
 class CarritoItem:
     """Item del carrito de compras"""
@@ -185,6 +186,49 @@ class VentaService:
         
         return id_venta
     
+    @staticmethod
+    def procesar_pagotest(usuario :int, metodo_pago: str, monto: float, total: int, carrito: list) ->Optional[int]:
+            
+            if monto<total:
+                return None
+        
+            id_usuario = usuario
+            cambio = monto - total
+            carritoItems= carrito
+            venta = Venta( 
+             _id_usuario = id_usuario,
+             _metodo_pago = metodo_pago, 
+             _total = total, 
+             _monto_recibido =monto,
+             _cambio = cambio   
+            )
+            detalles = []
+
+            for item in carritoItems:
+                    detalle = DetalleVenta(
+                        _id_producto=item['id_producto'],
+                        _cantidad=item['cantidad'],
+                        _precio_unitario=item['precio']
+                    )
+                    detalles.append(detalle)
+            
+            
+            id_venta = VentaRepository.guardar(
+                venta=venta,
+                detalles=detalles)
+            if id_venta:            
+                for item in carrito:
+                    InventarioService.registrar_salida(
+                    id_producto=item.id_producto,
+                    id_usuario=id_usuario,
+                    cantidad=item.cantidad,
+                    motivo="venta"
+                )
+                return id_venta
+            else:
+                return None
+    
+            
     @staticmethod
     def mostrar_factura(id_venta: int):
         """Muestra la factura de una venta"""

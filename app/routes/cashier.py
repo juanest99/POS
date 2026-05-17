@@ -7,7 +7,8 @@ from flask_login import login_required, current_user
 from services.venta_service import VentaService
 from services.producto_service import ProductoService
 from services.reporte_service import ReporteService
-
+from models.venta_repository import VentaRepository
+from models.usuario_repository import UsuarioRepository
 cashier_bp = Blueprint('cashier', __name__)
 
 @cashier_bp.route('/')
@@ -179,8 +180,6 @@ def buscar_producto():
 @login_required
 def historial():
     """Historial de ventas del cajero"""
-    from models.venta_repository import VentaRepository
-    
     ventas = VentaRepository.listar_por_usuario(current_user.id_usuario, limite=50)
     return render_template('cashier/historial.html', ventas=ventas)
 
@@ -188,9 +187,7 @@ def historial():
 @cashier_bp.route('/estadisticas')
 @login_required
 def estadisticas():
-    """Estadísticas del día para el cajero (solo sus ventas)"""
-    from models.venta_repository import VentaRepository
-    
+    """Estadísticas del día para el cajero (solo sus ventas)"""  
     ventas_hoy = VentaRepository.obtener_ventas_hoy()
     ventas_cajero = [v for v in ventas_hoy if v.id_usuario == current_user.id_usuario]
     
@@ -203,3 +200,26 @@ def estadisticas():
     }
     
     return render_template('cashier/estadisticas.html', stats=stats)
+
+@cashier_bp.route('/confirmacion', methods =['POST'])
+@login_required
+def registrar():
+    
+    usuario = UsuarioRepository.buscar_por_nombre(current_user.nombre)
+
+    metodo_pago = request.form['metodo_pago']
+    total = float(request.form['total'])
+    monto = float(request.form['monto_recibido'])
+
+    carrito = session.get('carrito',[])
+    #print('este es el carrito xd', carrito)
+    #print('id del usuario', usuario[0][0])
+   
+    venta = VentaService.procesar_pagotest(
+        usuario=usuario[0][0],
+        metodo_pago=metodo_pago,
+        monto=monto,
+        total = total,
+        carrito=carrito)
+    
+    return render_template('cashier/venta_exitosa.html')

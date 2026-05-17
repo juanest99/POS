@@ -58,7 +58,7 @@ class VentaRepository:
             return id_venta
             
         except Exception as e:
-            print(f"❌ Error al guardar venta: {e}")
+            print(f"❌ Error al guardar detalleventa: {e}")
             return None
     
     @staticmethod
