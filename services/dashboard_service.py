@@ -110,25 +110,33 @@ class DashboardService:
     
     @staticmethod
     def get_sales_by_hour_today() -> Dict[int, float]:
-        """Ventas agrupadas por hora del día (para gráfico)"""
+    
         hoy = datetime.now().strftime('%Y-%m-%d')
+    
         query = """
-            SELECT EXTRACT(HOUR FROM fecha) as hour, SUM(total) as total
+            SELECT EXTRACT(HOUR FROM fecha) as hour,
+                   SUM(total) as total
             FROM VENTA
             WHERE DATE(fecha) = %s
             GROUP BY hour
             ORDER BY hour
         """
+    
         results = conexion(query, (hoy,))
+    
         sales_by_hour = {}
+    
         if results:
             for row in results:
                 sales_by_hour[int(row[0])] = float(row[1])
-        # Completar horas sin ventas (0)
-        for h in range(24):
+    
+        # Solo horario del negocio
+        for h in range(8, 21):
+        
             if h not in sales_by_hour:
                 sales_by_hour[h] = 0
-        return sales_by_hour
+    
+        return dict(sorted(sales_by_hour.items()))
     
     @staticmethod
     def get_peak_hour_today() -> str:

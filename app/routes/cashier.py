@@ -156,11 +156,11 @@ def venta_exitosa(id_venta):
     """Mostrar página de venta exitosa"""
     return render_template('cashier/venta_exitosa.html', id_venta=id_venta)
 
-
+"""
 @cashier_bp.route('/buscar-producto')
 @login_required
 def buscar_producto():
-    """API: Buscar productos por nombre o código"""
+   
     query = request.args.get('q', '')
     productos = ProductoService.listar_productos()
     
@@ -176,7 +176,7 @@ def buscar_producto():
     
     return jsonify(resultados)
 
-
+"""
 @cashier_bp.route('/historial')
 @login_required
 def historial():
@@ -231,7 +231,7 @@ def tabla_ventas():
     
     usuario = UsuarioRepository.buscar_por_nombre(current_user.nombre)
     query = """
-            SELECT U.nombre, V.metodo_pago, V.total,P.nombre FROM VENTA V
+            SELECT U.nombre, V.metodo_pago, DE.subtotal,P.nombre FROM VENTA V
             INNER JOIN DETALLE_VENTA DE ON DE.id_venta = V.id_venta 
             INNER JOIN PRODUCTO P ON P.id_producto = DE.id_producto
             INNER JOIN USUARIO U ON  U.id_usuario = V.id_usuario
@@ -270,4 +270,22 @@ def estadisticas():
     }
     
     return render_template('cashier/estadisticas.html',stats= stats)
-    
+
+@cashier_bp.route('/buscar-producto')
+@login_required
+def buscar_producto():
+
+    nombre_producto = request.args.get('buscar')
+
+    productos = ProductoService.buscar_por_nombre(nombre_producto)
+
+    carrito = session.get('carrito', [])
+
+    total = sum(item['subtotal'] for item in carrito)
+
+    return render_template(
+        'cashier/nueva_venta.html',
+        productos=productos,
+        carrito=carrito,
+        total=total
+    )

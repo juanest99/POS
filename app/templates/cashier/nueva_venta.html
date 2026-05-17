@@ -1,10 +1,12 @@
-{% extends "base.html" %}
+{% extends "base.html" %} 
 {% block title %}Nueva Venta{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
+
     <div class="row">
         <div class="col-md-12 mb-3">
+
             <h2>
                 <i class="fas fa-cash-register"></i> Nueva Venta
 
@@ -21,6 +23,7 @@
 
         <!-- Productos -->
         <div class="col-md-5">
+
             <div class="card">
 
                 <div class="card-header bg-primary text-white">
@@ -29,8 +32,9 @@
 
                 <div class="card-body">
 
+                    <!-- FORMULARIO BUSCADOR -->
                     <form method="GET"
-                          action="{{ url_for('cashier.nueva_venta') }}">
+                          action="{{ url_for('cashier.buscar_producto') }}">
 
                         <div class="input-group mb-3">
 
@@ -48,6 +52,7 @@
                         </div>
                     </form>
 
+                    <!-- LISTA PRODUCTOS -->
                     <div class="list-group"
                          style="max-height: 400px; overflow-y:auto;">
 
@@ -58,6 +63,7 @@
                             <div class="d-flex justify-content-between align-items-center">
 
                                 <div>
+
                                     <strong>{{ p.nombre }}</strong><br>
 
                                     <small>
@@ -67,6 +73,7 @@
                                     </small>
                                 </div>
 
+                                <!-- AGREGAR AL CARRITO -->
                                 <form method="POST"
                                       action="{{ url_for('cashier.nueva_venta') }}"
                                       class="d-flex">
@@ -99,14 +106,21 @@
                             </div>
                         </div>
 
+                        {% else %}
+
+                        <div class="list-group-item text-center">
+                            No se encontraron productos
+                        </div>
+
                         {% endfor %}
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Carrito -->
+        <!-- CARRITO -->
         <div class="col-md-7">
+
             <div class="card">
 
                 <div class="card-header bg-success text-white">
@@ -120,6 +134,7 @@
                         <table class="table table-bordered">
 
                             <thead>
+
                                 <tr>
                                     <th>Producto</th>
                                     <th>Precio</th>
@@ -143,6 +158,7 @@
 
                                     <td>
 
+                                        <!-- ACTUALIZAR CANTIDAD -->
                                         <form method="POST"
                                               action="{{ url_for('cashier.nueva_venta') }}"
                                               class="d-flex">
@@ -176,6 +192,7 @@
 
                                     <td>
 
+                                        <!-- QUITAR PRODUCTO -->
                                         <form method="POST"
                                               action="{{ url_for('cashier.nueva_venta') }}">
 
@@ -208,7 +225,9 @@
                             </tbody>
 
                             <tfoot>
+
                                 <tr class="table-active">
+
                                     <th colspan="3" class="text-end">
                                         TOTAL:
                                     </th>
@@ -221,9 +240,10 @@
                         </table>
                     </div>
 
-                    <!-- Botones -->
+                    <!-- BOTONES -->
                     <div class="d-flex justify-content-between mt-3">
 
+                        <!-- VACIAR -->
                         <form method="POST"
                               action="{{ url_for('cashier.nueva_venta') }}">
 
@@ -239,6 +259,7 @@
                             </button>
                         </form>
 
+                        <!-- PAGAR -->
                         <button class="btn btn-primary"
                                 data-bs-toggle="modal"
                                 data-bs-target="#pagoModal"
@@ -254,7 +275,7 @@
     </div>
 </div>
 
-<!-- Modal -->
+<!-- MODAL PAGO -->
 <div class="modal fade"
      id="pagoModal"
      tabindex="-1">
@@ -276,7 +297,7 @@
                 </button>
             </div>
 
-            <!-- FORM CORRECTO -->
+            <!-- FORM PROCESAR VENTA -->
             <form method="POST"
                   action="{{ url_for('cashier.registrar') }}">
 
@@ -344,7 +365,6 @@
                         Cancelar
                     </button>
 
-                    <!-- ESTE ES EL CAMBIO IMPORTANTE -->
                     <button type="submit"
                             class="btn btn-success">
 
@@ -355,4 +375,5 @@
         </div>
     </div>
 </div>
+
 {% endblock %}
