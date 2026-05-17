@@ -184,11 +184,11 @@ def historial():
     ventas = VentaRepository.listar_por_usuario(current_user.id_usuario, limite=50)
     return render_template('cashier/historial.html', ventas=ventas)
 
-
+"""
 @cashier_bp.route('/estadisticas')
 @login_required
 def estadisticas():
-    """Estadísticas del día para el cajero (solo sus ventas)"""  
+    
     ventas_hoy = VentaRepository.obtener_ventas_hoy()
     ventas_cajero = [v for v in ventas_hoy if v.id_usuario == current_user.id_usuario]
     
@@ -201,7 +201,7 @@ def estadisticas():
     }
     
     return render_template('cashier/estadisticas.html', stats=stats)
-
+"""
 @cashier_bp.route('/confirmacion', methods =['POST'])
 @login_required
 def registrar():
@@ -241,3 +241,33 @@ def tabla_ventas():
     print('aca estan los datos \n', resultado)
 
     return render_template('cashier/historial.html', ventas = resultado)
+
+@cashier_bp.route('/estadisticas-cajero')
+@login_required
+def estadisticas(): 
+    usuario = UsuarioRepository.buscar_por_nombre(current_user.nombre)
+
+    query_ventas = """
+            SELECT COUNT(*) as total_ventas FROM VENTA
+            WHERE fecha = CURRENT_DATE AND id_usuario = %s"""
+    query_recaudo = """
+            SELECT SUM(total) AS recaudado FROM VENTA 
+            WHERE fecha = CURRENT_DATE AND id_usuario = %s"""
+    query_prom= """
+                SELECT ROUND(AVG(total),2) AS promedio FROM VENTA 
+                WHERE fecha = CURRENT_DATE AND id_usuario = %s"""
+    
+    params = (usuario[0][0],)
+    ventas = conexion(query=query_ventas,params=params)
+    recaudo = conexion(query=query_recaudo, params=params)
+    promedio = conexion(query=query_prom, params=params)
+
+
+    stats = {
+        'ventas_hoy': ventas[0][0] or 0,
+        'total_hoy': recaudo[0][0] or 0,
+        'promedio_hoy': promedio[0][0] or 0
+    }
+    
+    return render_template('cashier/estadisticas.html',stats= stats)
+    
